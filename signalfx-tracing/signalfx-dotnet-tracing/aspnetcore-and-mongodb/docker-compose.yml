@@ -1,24 +1,24 @@
 version: '3.7'
 services:
   aspnetcore:
-    build: src/AspNetCoreExample 
+    build: src/AspNetCoreExample
     ports:
      - "5000:5000"
     environment:
       SIGNALFX_SERVICE_NAME: 'asp.net-core'
-      SIGNALFX_ENDPOINT_URL: 'http://smart-gateway:9080/v1/trace'
+      SIGNALFX_ENDPOINT_URL: 'http://otel-collector:9080/v1/trace'
     depends_on:
       - client
       - mongo
-      - smart-gateway
+      - otel-collector
     user: 'root'
   client:
     build: src/ClientExample
     environment:
       SIGNALFX_SERVICE_NAME: 'example-client'
-      SIGNALFX_ENDPOINT_URL: 'http://smart-gateway:9080/v1/trace'
+      SIGNALFX_ENDPOINT_URL: 'http://otel-collector:9080/v1/trace'
     depends_on:
-      - smart-gateway
+      - otel-collector
     user: 'root'
     entrypoint: 'bash'
     command: '-c "sleep 10; while true; do dotnet ClientExample.dll; done"'
@@ -27,8 +27,24 @@ services:
     restart: unless-stopped
     ports:
       - "27017:27017"
-  smart-gateway:
-    image: smart-gateway
+  otel-collector:
+    image: quay.io/signalfx/splunk-otel-collector
     restart: unless-stopped
     ports:
+      - "13133:13133"
+      - "14250:14250"
+      - "14268:14268"
+      - "4317:4317"
+      - "6060:6060"
+      - "8888:8888"
       - "9080:9080"
+      - "9411:9411"
+      - "9943:9943"
+    environment:
+      SPLUNK_ACCESS_TOKEN: <TOKEN>
+      SPLUNK_REALM: us0
+      SPLUNK_CONFIG: /etc/config/config.yaml
+    volumes:
+      - ./config:/etc/config:ro
+# volumes:
+#   config:
