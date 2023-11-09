@@ -7,6 +7,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import redis.clients.jedis.Jedis;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -26,6 +28,7 @@ import java.util.concurrent.TimeUnit;
  * <p>
  */
 public class App {
+    private static final Logger logger = LoggerFactory.getLogger(App.class);
     private final OkHttpClient httpClient;
     private final Jedis redisClient;
     private final ExecutorService executor;
@@ -42,7 +45,7 @@ public class App {
 
     public static void main(String[] argv) {
         if (argv.length == 0) {
-            System.out.println("Please specify a URL to fetch");
+            logger.error("Please specify a URL to fetch");
             System.exit(1);
         }
 
@@ -51,7 +54,7 @@ public class App {
         App app = new App();
         app.doFetchAndSet(url);
 
-        System.out.println("Example complete");
+        logger.info("Example complete");
     }
 
     // This span acts as a root span that is the parent of the spans generated
@@ -61,6 +64,7 @@ public class App {
     // see two independent traces for the HTTP get and the Redis set.
     @WithSpan("fetch-and-set")
     private void doFetchAndSet(String url) {
+        logger.info("Doing Stuff");
         Request request = new Request.Builder()
                 .url(url)
                 .build();
@@ -72,7 +76,7 @@ public class App {
             String respBody = response.body().string();
             executor.submit(() -> redisClient.set(url, respBody));
         } catch (IOException e) {
-            System.out.println("Error: " + e);
+            logger.error("Error: " + e);
             return;
         } catch (Throwable e) {
             span.recordException(e);
@@ -89,6 +93,7 @@ public class App {
             // long-running apps this is generally unnecessary but unfortunately there is no
             // OpenTelemetry API method for closing/stopping a tracer.
             Thread.sleep(2000);
+            logger.info("Doing Stuff Again");
         } catch (InterruptedException e) {
             //Do nothing
         }
