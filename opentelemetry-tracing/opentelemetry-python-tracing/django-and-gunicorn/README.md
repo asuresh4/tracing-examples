@@ -1,36 +1,12 @@
 # Instrumenting Django and Gunicorn with Splunk OpenTelemetry
 
-## 1. Setup virtual env
-
+Build and run the dockerized app using the following commands.
 ```
-python -m venv venv
-```
-
-## 2. Activate the virtual env
-
-```
-source venv/bin/activate
+docker build --build-arg SPLUNK_REALM=<REALM> --build-arg SPLUNK_ACCESS_TOKEN=<TOKEN> -t django-docker .
+docker run -p 8000:8000 django-docker
 ```
 
-## 3. Install dependencies into virtual env
-
-```
-pip install -r requirements.txt
-```
-
-## 4. Install instrumentation packages
-
-```
-splunk-py-trace-bootstrap
-```
-
-## 5. Run the Django app with Gunicorn
-
-```
-export DJANGO_SETTINGS_MODULE=djtest.settings
-export OTEL_SERVICE_NAME=my-django-service
-splunk-py-trace gunicorn -b 127.0.0.1:8000 --threads 2 --workers 4 djtest.wsgi
-```
+The build command expects a valid token and realm. The instrumentation is set up to also log at debug level and will also print spans to the console.
 
 Open http://localhost:8000/hello to access the app.
 
