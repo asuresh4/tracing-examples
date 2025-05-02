@@ -64,4 +64,4 @@ ENV OTEL_EXPORTER_OTLP_TRACES_PROTOCOL=http/protobuf
 ENV OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=https://ingest.$SPLUNK_REALM.signalfx.com/v2/trace/otlp
 
 # Command to run the application
-CMD ["opentelemetry-instrument", "gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "djtest.wsgi:application"]
+CMD ["opentelemetry-instrument", "gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--worker-class", "gevent", "djtest.wsgi:application"]
